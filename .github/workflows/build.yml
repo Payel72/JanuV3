@@ -19,11 +19,20 @@ jobs:
           java-version: '17'
           distribution: 'temurin'
 
-      - name: Auto-Fix and Add UI Interface
+      - name: Auto-Fix, Add Queries & UI Interface
         run: |
           cd JanuV3
           
-          # ইন্টারফেসসহ সঠিক MainActivity.java তৈরি করা হচ্ছে যা স্ক্রিনে অ্যাপের তালিকা দেখাবে
+          # ১. AndroidManifest.xml এ <queries> ট্যাগ যোগ করা (যাতে আধুনিক অ্যান্ড্রয়েডে ফোনের সব অ্যাপের লিস্ট দেখা যায়)
+          MANIFEST_PATH="app/src/main/AndroidManifest.xml"
+          if [ -f "$MANIFEST_PATH" ]; then
+            if ! grep -q "<queries>" "$MANIFEST_PATH"; then
+              sed -i '/<\/manifest>/i \
+              <queries>\n    <intent>\n        <action android:name="android.intent.action.MAIN"/>\n        <category android:name="android.intent.category.LAUNCHER"/>\n    </intent>\n<\/queries>' "$MANIFEST_PATH"
+            fi
+          fi
+
+          # ২. ইন্টারফেসসহ সঠিক MainActivity.java তৈরি করা
           mkdir -p app/src/main/java/com/janu/v3
           cat << 'EOF' > app/src/main/java/com/janu/v3/MainActivity.java
           package com.janu.v3;
@@ -45,7 +54,6 @@ jobs:
               protected void onCreate(Bundle savedInstanceState) {
                   super.onCreate(savedInstanceState);
 
-                  // একটি লিস্টভিউ ইন্টারফেস তৈরি করা হলো যা স্ক্রিনে অ্যাপ দেখাবে
                   ListView listView = new ListView(this);
                   setContentView(listView);
 
@@ -69,16 +77,17 @@ jobs:
                       }
                   }
 
-                  // ইন্টারফেসে অ্যাপের নামগুলো দেখানোর জন্য এডাপ্টার সেট করা হলো
                   ArrayAdapter<String> adapter = new ArrayAdapter<>(this, android.R.layout.simple_list_item_1, appNames);
                   listView.setAdapter(adapter);
               }
           }
           EOF
 
-          # build.gradle এ AppCompat লাইব্রেরি যুক্ত করা
+          # ৩. build.gradle এ AppCompat লাইব্রেরি যুক্ত করা
           if [ -f app/build.gradle ]; then
-            echo "dependencies { implementation 'androidx.appcompat:appcompat:1.6.1' }" >> app/build.gradle
+            if ! grep -q "appcompat" app/build.gradle; then
+              echo "dependencies { implementation 'androidx.appcompat:appcompat:1.6.1' }" >> app/build.gradle
+            fi
           fi
 
       - name: Build APK
