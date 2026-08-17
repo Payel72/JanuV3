@@ -1,5 +1,3 @@
-.content.Intent;
-import android.content.pm.ResolveInfo;
 import android.app.AlertDialog;
 import android.view.View;
 import androidx.appcompat.app.AppCompatActivity;
