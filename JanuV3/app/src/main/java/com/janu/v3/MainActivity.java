@@ -1,7 +1,4 @@
-package com.janu.v3;
-
-import android.os.Bundle;
-import android.content.Intent;
+.content.Intent;
 import android.content.pm.ResolveInfo;
 import android.app.AlertDialog;
 import android.view.View;
@@ -44,6 +41,3 @@ public class MainActivity extends AppCompatActivity {
                     .show();
         } catch (Exception e) {
             e.printStackTrace();
-        }
-    }
-}
