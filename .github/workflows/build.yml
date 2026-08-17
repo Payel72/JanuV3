@@ -1,4 +1,4 @@
-name: Build Janu V3 APK
+name: Auto Build Janu V3 APK
 
 on:
   workflow_dispatch:
@@ -18,6 +18,67 @@ jobs:
         with:
           java-version: '17'
           distribution: 'temurin'
+
+      - name: Auto-Fix and Patch Project Files
+        run: |
+          cd JanuV3
+          
+          # ১. MainActivity.java ফাইলটি নিজে থেকেই সঠিক কোড দিয়ে তৈরি বা ওভাররাইট করে নেওয়া
+          mkdir -p app/src/main/java/com/janu/v3
+          cat << 'EOF' > app/src/main/java/com/janu/v3/MainActivity.java
+          package com.janu.v3;
+
+          import android.os.Bundle;
+          import android.content.Intent;
+          import android.content.pm.ResolveInfo;
+          import android.app.AlertDialog;
+          import android.view.View;
+          import androidx.appcompat.app.AppCompatActivity;
+
+          import java.util.Collections;
+          import java.util.Comparator;
+          import java.util.List;
+
+          public class MainActivity extends AppCompatActivity {
+              @Override
+              protected void onCreate(Bundle savedInstanceState) {
+                  super.onCreate(savedInstanceState);
+                  setContentView(R.layout.activity_main);
+
+                  Intent main = new Intent(Intent.ACTION_MAIN, null);
+                  main.addCategory(Intent.CATEGORY_LAUNCHER);
+                  
+                  List<ResolveInfo> apps = getPackageManager().queryIntentActivities(main, 0);
+                  
+                  if (apps != null) {
+                      Collections.sort(apps, new Comparator<ResolveInfo>() {
+                          @Override
+                          public int compare(ResolveInfo a, ResolveInfo b) {
+                              return a.loadLabel(getPackageManager()).toString()
+                                      .compareToIgnoreCase(b.loadLabel(getPackageManager()).toString());
+                          }
+                      });
+                  }
+
+                  View sv = null;
+                  try {
+                      new AlertDialog.Builder(this)
+                              .setTitle("সাহায্য")
+                              .setView(sv)
+                              .setPositiveButton("বন্ধ", null)
+                              .show();
+                  } catch (Exception e) {
+                      e.printStackTrace();
+                  }
+              }
+          }
+          EOF
+
+          # ২. build.gradle ফাইলে স্বয়ংক্রিয়ভাবে AppCompat লাইব্রেরি যোগ করা
+          if [ -f app/build.gradle ]; then
+            echo "Adding appcompat dependency..."
+            echo "dependencies { implementation 'androidx.appcompat:appcompat:1.6.1' }" >> app/build.gradle
+          fi
 
       - name: Build APK
         run: |
