@@ -1,4 +1,4 @@
-name: Extract Project Files
+name: Build Janu V3 APK
 
 on:
   workflow_dispatch:
@@ -6,23 +6,27 @@ on:
     branches:
       - main
 
-permissions:
-  contents: write
-
 jobs:
-  unzip-and-save:
+  build:
     runs-on: ubuntu-latest
     steps:
       - name: Checkout code
         uses: actions/checkout@v4
 
-      - name: Extract ZIP file
-        run: unzip -o Janu_V3_Project.zip
+      - name: Set up Java 17
+        uses: actions/setup-java@v4
+        with:
+          java-version: '17'
+          distribution: 'temurin'
 
-      - name: Save Codes to GitHub
+      - name: Build APK
         run: |
-          git config --global user.name "github-actions[bot]"
-          git config --global user.email "github-actions[bot]@users.noreply.github.com"
-          git add .
-          git commit -m "Unzip and save project files to repository" || echo "Nothing to commit"
-          git push
+          cd JanuV3
+          chmod +x ./gradlew
+          ./gradlew assembleDebug
+
+      - name: Upload APK
+        uses: actions/upload-artifact@v4
+        with:
+          name: Janu-V3-debug
+          path: JanuV3/app/build/outputs/apk/debug/app-debug.apk
