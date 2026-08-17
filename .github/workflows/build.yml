@@ -19,11 +19,10 @@ jobs:
           java-version: '17'
           distribution: 'temurin'
 
-      - name: Auto-Fix, Add Queries & UI Interface
+      - name: Auto-Fix and Safe UI Implementation
         run: |
           cd JanuV3
           
-          # ১. AndroidManifest.xml এ <queries> ট্যাগ যোগ করা (যাতে আধুনিক অ্যান্ড্রয়েডে ফোনের সব অ্যাপের লিস্ট দেখা যায়)
           MANIFEST_PATH="app/src/main/AndroidManifest.xml"
           if [ -f "$MANIFEST_PATH" ]; then
             if ! grep -q "<queries>" "$MANIFEST_PATH"; then
@@ -32,7 +31,6 @@ jobs:
             fi
           fi
 
-          # ২. ইন্টারফেসসহ সঠিক MainActivity.java তৈরি করা
           mkdir -p app/src/main/java/com/janu/v3
           cat << 'EOF' > app/src/main/java/com/janu/v3/MainActivity.java
           package com.janu.v3;
@@ -42,6 +40,7 @@ jobs:
           import android.content.pm.ResolveInfo;
           import android.widget.ArrayAdapter;
           import android.widget.ListView;
+          import android.widget.TextView;
           import androidx.appcompat.app.AppCompatActivity;
 
           import java.util.ArrayList;
@@ -54,36 +53,45 @@ jobs:
               protected void onCreate(Bundle savedInstanceState) {
                   super.onCreate(savedInstanceState);
 
-                  ListView listView = new ListView(this);
-                  setContentView(listView);
+                  try {
+                      ListView listView = new ListView(this);
+                      setContentView(listView);
 
-                  Intent main = new Intent(Intent.ACTION_MAIN, null);
-                  main.addCategory(Intent.CATEGORY_LAUNCHER);
-                  
-                  List<ResolveInfo> apps = getPackageManager().queryIntentActivities(main, 0);
-                  List<String> appNames = new ArrayList<>();
-                  
-                  if (apps != null) {
-                      Collections.sort(apps, new Comparator<ResolveInfo>() {
-                          @Override
-                          public int compare(ResolveInfo a, ResolveInfo b) {
-                              return a.loadLabel(getPackageManager()).toString()
-                                      .compareToIgnoreCase(b.loadLabel(getPackageManager()).toString());
+                      Intent main = new Intent(Intent.ACTION_MAIN, null);
+                      main.addCategory(Intent.CATEGORY_LAUNCHER);
+                      
+                      List<ResolveInfo> apps = getPackageManager().queryIntentActivities(main, 0);
+                      List<String> appNames = new ArrayList<>();
+                      
+                      if (apps != null && !apps.isEmpty()) {
+                          Collections.sort(apps, new Comparator<ResolveInfo>() {
+                              @Override
+                              public int compare(ResolveInfo a, ResolveInfo b) {
+                                  return a.loadLabel(getPackageManager()).toString()
+                                          .compareToIgnoreCase(b.loadLabel(getPackageManager()).toString());
+                              }
+                          });
+
+                          for (ResolveInfo info : apps) {
+                              appNames.add(info.loadLabel(getPackageManager()).toString());
                           }
-                      });
-
-                      for (ResolveInfo info : apps) {
-                          appNames.add(info.loadLabel(getPackageManager()).toString());
+                      } else {
+                          appNames.add("কোনো অ্যাপ পাওয়া যায়নি!");
                       }
-                  }
 
-                  ArrayAdapter<String> adapter = new ArrayAdapter<>(this, android.R.layout.simple_list_item_1, appNames);
-                  listView.setAdapter(adapter);
+                      ArrayAdapter<String> adapter = new ArrayAdapter<>(this, android.R.layout.simple_list_item_1, appNames);
+                      listView.setAdapter(adapter);
+
+                  } catch (Exception e) {
+                      TextView errorView = new TextView(this);
+                      errorView.setText("Error: " + e.getMessage());
+                      errorView.setTextSize(18);
+                      setContentView(errorView);
+                  }
               }
           }
           EOF
 
-          # ৩. build.gradle এ AppCompat লাইব্রেরি যুক্ত করা
           if [ -f app/build.gradle ]; then
             if ! grep -q "appcompat" app/build.gradle; then
               echo "dependencies { implementation 'androidx.appcompat:appcompat:1.6.1' }" >> app/build.gradle
