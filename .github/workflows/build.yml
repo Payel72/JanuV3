@@ -23,6 +23,11 @@ jobs:
       - name: Unzip Project
         run: unzip Janu_V3_Project.zip
 
+      - name: Fix Missing Imports Automatically
+        run: |
+          MAIN_ACTIVITY=$(find . -name "MainActivity.java" | head -n 1)
+          sed -i 's/package com.janu.v3;/package com.janu.v3;\nimport android.app.AlertDialog;\nimport android.content.pm.ResolveInfo;/g' $MAIN_ACTIVITY
+
       - name: Setup Gradle and Build APK
         run: |
           PROJECT_DIR=$(dirname $(find . -name "settings.gradle*" | head -n 1))
