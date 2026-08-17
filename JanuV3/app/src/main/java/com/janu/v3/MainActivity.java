@@ -1,3 +1,8 @@
+package com.janu.v3;
+
+import android.os.Bundle;
+import android.content.Intent;
+import android.content.pm.ResolveInfo;
 import android.app.AlertDialog;
 import android.view.View;
 import androidx.appcompat.app.AppCompatActivity;
@@ -13,7 +18,6 @@ public class MainActivity extends AppCompatActivity {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_main);
 
-        // অ্যাপের মূল লজিক এবং ইনটেন্ট হ্যান্ডলিং
         Intent main = new Intent(Intent.ACTION_MAIN, null);
         main.addCategory(Intent.CATEGORY_LAUNCHER);
         
@@ -29,8 +33,7 @@ public class MainActivity extends AppCompatActivity {
             });
         }
 
-        // ডায়ালগ বক্স দেখানোর অংশ
-        View sv = null; // আপনার কাস্টম ভিউ থাকলে এখানে যুক্ত করবেন
+        View sv = null;
         try {
             new AlertDialog.Builder(this)
                     .setTitle("সাহায্য")
@@ -39,3 +42,6 @@ public class MainActivity extends AppCompatActivity {
                     .show();
         } catch (Exception e) {
             e.printStackTrace();
+        }
+    }
+}
