@@ -1,6 +1,4 @@
-package com.janu.v3;
-
-import android.os.Bundle;
+android.os.Bundle;
 import android.content.Intent;
 import android.content.pm.ResolveInfo;
 import android.app.AlertDialog;
